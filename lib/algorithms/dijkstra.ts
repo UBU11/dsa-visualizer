@@ -53,6 +53,7 @@ export const dijkstra: AlgorithmDefinition = {
       fromId: e.from,
       toId: e.to,
       directed: true,
+      weight: e.w,
     }));
     const adj = new Map<string, { to: string; w: number }[]>();
     for (const n of NODES) adj.set(n.id, []);
@@ -62,11 +63,17 @@ export const dijkstra: AlgorithmDefinition = {
     for (const n of NODES) dist[n.id] = Infinity;
     dist[startId] = 0;
 
+    const getNodesWithDist = () =>
+      nodes.map((n) => ({
+        ...n,
+        subLabel: `d = ${dist[n.id] === Infinity ? "∞" : dist[n.id]}`,
+      }));
+
     const rec = createRecorder({
       index: 0,
       title: "Init distances",
       currentLine: 1,
-      graphNodes: nodes,
+      graphNodes: getNodesWithDist(),
       graphEdges: edges,
       graphHighlights: { [startId]: "pointer" },
       variables: NODES.map((n) => ({
@@ -92,7 +99,7 @@ export const dijkstra: AlgorithmDefinition = {
       pushStep(rec, {
         title,
         currentLine: line,
-        graphNodes: nodes,
+        graphNodes: getNodesWithDist(),
         graphEdges: edges,
         graphHighlights: { ...Object.fromEntries(order.map((o) => [o, "sorted" as const])), ...hi },
         variables: vars,
@@ -151,7 +158,7 @@ export const dijkstra: AlgorithmDefinition = {
         .map(([k, v]) => `${k}=${v === Infinity ? "∞" : v}`)
         .join(", "),
       currentLine: 5,
-      graphNodes: nodes,
+      graphNodes: getNodesWithDist(),
       graphEdges: edges,
       graphHighlights: Object.fromEntries(nodes.map((n) => [n.id, "sorted" as const])),
       variables: NODES.map((n) => ({

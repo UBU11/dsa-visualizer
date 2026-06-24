@@ -31,6 +31,7 @@ export interface GraphNodeSnapshot {
   label: string;
   x: number;
   y: number;
+  subLabel?: string;
 }
 
 export interface GraphEdgeSnapshot {
@@ -38,6 +39,7 @@ export interface GraphEdgeSnapshot {
   fromId: string;
   toId: string;
   directed: boolean;
+  weight?: number | string;
 }
 
 export interface LinkedListNodeSnapshot {
@@ -237,7 +239,8 @@ export interface AlgorithmDefinition {
     | "DP"
     | "Stacks & Queues"
     | "Backtracking"
-    | "Strings";
+    | "Strings"
+    | "Cryptography";
   structure: StructureKind;
   summary: string;
   pseudocode: PseudoLine[];

@@ -26,6 +26,8 @@ import { trieInsert } from "@/lib/algorithms/trieInsert";
 import { bfsGraph } from "@/lib/algorithms/bfsGraph";
 import { dfsGraph } from "@/lib/algorithms/dfsGraph";
 import { dijkstra } from "@/lib/algorithms/dijkstra";
+import { bellmanFord } from "@/lib/algorithms/bellmanFord";
+import { distanceVector } from "@/lib/algorithms/distanceVector";
 import { topoSort } from "@/lib/algorithms/topoSort";
 import { fibonacci } from "@/lib/algorithms/fibonacci";
 import { coinChange } from "@/lib/algorithms/coinChange";
@@ -33,6 +35,7 @@ import { knapsack } from "@/lib/algorithms/knapsack";
 import { lcs } from "@/lib/algorithms/lcs";
 import { nQueens } from "@/lib/algorithms/nQueens";
 import { kmp } from "@/lib/algorithms/kmp";
+import { aesSimulation } from "@/lib/algorithms/aesSimulation";
 
 export const algorithms: AlgorithmDefinition[] = [
   bubbleSort,
@@ -56,6 +59,8 @@ export const algorithms: AlgorithmDefinition[] = [
   bfsGraph,
   dfsGraph,
   dijkstra,
+  bellmanFord,
+  distanceVector,
   topoSort,
   fibonacci,
   coinChange,
@@ -63,6 +68,7 @@ export const algorithms: AlgorithmDefinition[] = [
   lcs,
   nQueens,
   kmp,
+  aesSimulation,
 ];
 
 const byId = new Map(algorithms.map((a) => [a.id, a]));

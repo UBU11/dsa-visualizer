@@ -89,20 +89,50 @@ export function GraphView({ step }: Props) {
                 ? "#818cf8"
                 : "#fbbf24"
             : "#3f3f46";
+
+          // Calculate midpoint for the edge label
+          const mx = (x1 + x2) / 2;
+          const my = (y1 + y2) / 2;
+          const labelStr = e.weight !== undefined ? String(e.weight) : "";
+          const rectW = Math.max(20, labelStr.length * 6 + 8);
+
           return (
-            <motion.line
-              key={e.id}
-              x1={x1}
-              y1={y1}
-              x2={x2}
-              y2={y2}
-              stroke={stroke}
-              strokeWidth={active ? 2 : 1.2}
-              markerEnd={e.directed ? "url(#arrow)" : undefined}
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 0.25, ease: "easeInOut" }}
-            />
+            <g key={e.id}>
+              <motion.line
+                x1={x1}
+                y1={y1}
+                x2={x2}
+                y2={y2}
+                stroke={stroke}
+                strokeWidth={active ? 2 : 1.2}
+                markerEnd={e.directed ? "url(#arrow)" : undefined}
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 0.25, ease: "easeInOut" }}
+              />
+              {e.weight !== undefined && (
+                <g transform={`translate(${mx}, ${my})`}>
+                  <rect
+                    x={-rectW / 2}
+                    y={-8}
+                    width={rectW}
+                    height={16}
+                    rx={4}
+                    fill="#18181b"
+                    stroke="#27272a"
+                    strokeWidth={1}
+                  />
+                  <text
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    fill="#a1a1aa"
+                    className="font-mono text-[9px] font-semibold select-none"
+                  >
+                    {labelStr}
+                  </text>
+                </g>
+              )}
+            </g>
           );
         })}
       </svg>
@@ -117,11 +147,16 @@ export function GraphView({ step }: Props) {
             animate={{ scale: 1, opacity: 1, x: p.x - nodeR, y: p.y - nodeR }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className={`absolute grid place-items-center rounded-full border ${
-              palette ? `${palette.bg} ${palette.border}` : defaultCellClass
+              palette ? `${palette.bg} ${palette.border} ${palette.text}` : defaultCellClass
             } font-mono text-sm font-semibold`}
             style={{ width: nodeR * 2, height: nodeR * 2 }}
           >
             {n.label}
+            {n.subLabel !== undefined && (
+              <div className="absolute top-[105%] left-1/2 -translate-x-1/2 whitespace-nowrap bg-zinc-900 border border-zinc-800 text-[10px] text-zinc-300 font-mono px-1.5 py-0.5 rounded shadow-lg select-none pointer-events-none z-10">
+                {n.subLabel}
+              </div>
+            )}
           </motion.div>
         );
       })}
