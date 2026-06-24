@@ -26,40 +26,74 @@ const mk = (char: string, depth: number, parent: TN | null, parentEdgeChar: stri
   parentEdgeChar,
   depth,
 });
-
 function layout(root: TN | null): { nodes: TrieNodeSnapshot[]; edges: TrieEdgeSnapshot[] } {
   const nodes: TrieNodeSnapshot[] = [];
   const edges: TrieEdgeSnapshot[] = [];
   if (!root) return { nodes, edges };
-  const per = new Map<number, number>();
-  const walk = (n: TN) => {
-    per.set(n.depth, (per.get(n.depth) ?? 0) + 1);
-    for (const c of n.children.values()) walk(c);
+
+  // Calculate depths per node and max depth
+  const depthMap = new Map<string, number>();
+  const computeDepth = (n: TN, d: number) => {
+    depthMap.set(n.id, d);
+    for (const child of n.children.values()) {
+      computeDepth(child, d + 1);
+    }
   };
-  walk(root);
-  const slot = new Map<string, number>();
-  const seen = new Map<number, number>();
+  computeDepth(root, 0);
+  const maxD = Math.max(...Array.from(depthMap.values()), 1);
+
+  // Compute clean in-order traversal index for horizontal spacing
+  const xMap = new Map<string, number>();
+  let count = 0;
+  const dfs = (n: TN) => {
+    // Sort children alphabetically by key to make layout deterministic
+    const sortedChildren = Array.from(n.children.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map((entry) => entry[1]);
+
+    const mid = Math.floor(sortedChildren.length / 2);
+
+    for (let k = 0; k < mid; k++) {
+      dfs(sortedChildren[k]);
+    }
+    xMap.set(n.id, count++);
+    for (let k = mid; k < sortedChildren.length; k++) {
+      dfs(sortedChildren[k]);
+    }
+  };
+  dfs(root);
+
   const assign = (n: TN) => {
-    const row = per.get(n.depth)!;
-    const col = seen.get(n.depth) ?? 0;
-    slot.set(n.id, col);
-    seen.set(n.depth, col + 1);
-    const maxD = Math.max(...Array.from(per.keys()));
+    const idx = xMap.get(n.id)!;
+    const x = count > 1 ? (idx + 0.5) / count : 0.5;
+    const d = depthMap.get(n.id)!;
     const usableDepth = Math.min(maxD, 5);
+
     nodes.push({
       id: n.id,
       char: n.char,
       isWord: n.isWord,
-      x: (col + 0.5) / row,
-      y: usableDepth === 0 ? 0.5 : 0.1 + (n.depth / Math.max(usableDepth, 1)) * 0.78,
+      x,
+      y: usableDepth === 0 ? 0.5 : 0.1 + (d / Math.max(usableDepth, 1)) * 0.78,
       parentId: n.parent?.id ?? null,
-      depth: n.depth,
+      depth: d,
     });
-    if (n.parent)
-      edges.push({ id: `e-${n.parent.id}-${n.id}`, fromId: n.parent.id, toId: n.id, char: n.parentEdgeChar ?? "" });
-    for (const c of n.children.values()) assign(c);
+
+    if (n.parent) {
+      edges.push({
+        id: `e-${n.parent.id}-${n.id}`,
+        fromId: n.parent.id,
+        toId: n.id,
+        char: n.parentEdgeChar ?? "",
+      });
+    }
+
+    for (const c of n.children.values()) {
+      assign(c);
+    }
   };
   assign(root);
+
   return { nodes, edges };
 }
 
@@ -67,7 +101,7 @@ export const trieInsert: AlgorithmDefinition = {
   id: "trie-insert",
   name: "Trie Insert",
   category: "Trees",
-  structure: "tree",
+  structure: "trie",
   summary: "Insert words character-by-character; shared prefixes share nodes. Newly-created nodes turn rose.",
   pseudocode: [
     { line: 1, text: "insert(word):" },

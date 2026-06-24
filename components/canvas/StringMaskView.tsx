@@ -15,6 +15,8 @@ export function StringMaskView({ step }: Props) {
   const text = step.stringText ?? [];
   const pattern = step.stringPattern ?? [];
   const textIdx = step.stringTextIndex ?? 0;
+  const patternIdx = step.stringPatternIndex ?? 0;
+  const offsetIdx = textIdx - patternIdx;
 
   return (
     <div className="h-full w-full flex flex-col items-center justify-center gap-8 p-6 overflow-hidden">
@@ -25,7 +27,7 @@ export function StringMaskView({ step }: Props) {
           {text.map((c) => {
             const token = c.highlight as SemanticToken | undefined;
             const palette = token ? tokenColors[token] : null;
-            const isWindow = c.index >= textIdx && c.index < textIdx + pattern.length;
+            const isWindow = c.index >= offsetIdx && c.index < offsetIdx + pattern.length;
             return (
               <motion.div
                 key={c.id}
@@ -57,7 +59,7 @@ export function StringMaskView({ step }: Props) {
       <div className="flex flex-col items-center gap-2">
         <div className="text-[10px] uppercase tracking-wider text-zinc-500">Pattern</div>
         <motion.div
-          animate={{ x: textIdx * 44 }}
+          animate={{ x: offsetIdx * 44 }}
           transition={{ type: "spring", stiffness: 320, damping: 28 }}
           className="flex gap-1"
           style={{ width: "max-content" }}
@@ -77,7 +79,7 @@ export function StringMaskView({ step }: Props) {
             );
           })}
         </motion.div>
-        <div className="flex gap-1" style={{ transform: `translateX(${textIdx * 44}px)` }}>
+        <div className="flex gap-1" style={{ transform: `translateX(${offsetIdx * 44}px)` }}>
           {pattern.map((c) => (
             <div key={`pidx-${c.id}`} className="w-10 text-center text-[9px] font-mono text-zinc-600">
               {c.index}

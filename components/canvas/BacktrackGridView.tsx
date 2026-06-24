@@ -70,7 +70,7 @@ export function BacktrackGridView({ step }: Props) {
                   className={`grid place-items-center font-mono text-xs font-semibold border ${
                     palette
                       ? `${palette.bg} ${palette.border}`
-                      : `${defaultCellClass} border-zinc-700`
+                      : defaultCellClass
                   }`}
                   style={{ width: cellSize, height: cellSize }}
                 >

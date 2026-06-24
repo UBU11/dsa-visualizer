@@ -30,6 +30,7 @@ export function Shell() {
       >
         {step && def.structure === "array" && <ArrayView step={step} />}
         {step && def.structure === "tree" && <TreeView step={step} />}
+        {step && def.structure === "trie" && <TrieView step={step} />}
         {step && def.structure === "graph" && <GraphView step={step} />}
         {step && def.structure === "list" && <LinkedListView step={step} />}
         {step && def.structure === "stack" && <StackView step={step} />}
@@ -37,8 +38,6 @@ export function Shell() {
         {step && def.structure === "dp" && <DPGridView step={step} />}
         {step && def.structure === "backtrack" && <BacktrackGridView step={step} />}
         {step && def.structure === "string" && <StringMaskView step={step} />}
-        {/* Trie piggybacks on the tree renderer since the layout is also layered */}
-        {step && def.id.startsWith("trie") && <TrieView step={step} />}
       </div>
     </div>
   );

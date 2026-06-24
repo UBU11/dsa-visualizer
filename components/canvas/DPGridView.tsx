@@ -104,33 +104,69 @@ export function DPGridView({ step }: Props) {
           </div>
         </div>
         {current && (
-          <DependencyArrows current={current} cellSize={cellSize} />
+          <DependencyArrows current={current} cells={cells} cellSize={cellSize} />
         )}
       </div>
     </div>
   );
 }
 
-function DependencyArrows({ current, cellSize }: { current: DPCell; cellSize: number }) {
-  // Arrows pointing from `current` back to its dependency cells (cells flagged
-  // isDependency). Rendered as an overlay SVG.
+function DependencyArrows({
+  current,
+  cells,
+  cellSize,
+}: {
+  current: DPCell;
+  cells: DPCell[];
+  cellSize: number;
+}) {
+  const dependencies = cells.filter((c) => c.isDependency);
+  const x1 = 36 + current.col * cellSize + cellSize / 2;
+  const y1 = 24 + current.row * cellSize + cellSize / 2;
+
   return (
-    <svg
-      className="absolute pointer-events-none"
-      style={{
-        left: 36 + current.col * cellSize + cellSize / 2 - 80,
-        top: 24 + current.row * cellSize + cellSize / 2 - 80,
-        width: 160,
-        height: 160,
-      }}
-    >
+    <svg className="absolute inset-0 pointer-events-none w-full h-full">
       <defs>
-        <marker id="dp-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <marker
+          id="dp-arrow"
+          viewBox="0 0 10 10"
+          refX="6"
+          refY="5"
+          markerWidth="6"
+          markerHeight="6"
+          orient="auto-start-reverse"
+        >
           <path d="M 0 0 L 10 5 L 0 10 z" fill="#fbbf24" />
         </marker>
       </defs>
-      <line x1={80} y1={80} x2={80 - cellSize * 0.7} y2={80} stroke="#fbbf24" strokeWidth={1.5} markerEnd="url(#dp-arrow)" />
-      <line x1={80} y1={80} x2={80} y2={80 - cellSize * 0.7} stroke="#fbbf24" strokeWidth={1.5} markerEnd="url(#dp-arrow)" />
+      {dependencies.map((dep, idx) => {
+        const x2 = 36 + dep.col * cellSize + cellSize / 2;
+        const y2 = 24 + dep.row * cellSize + cellSize / 2;
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const len = Math.sqrt(dx * dx + dy * dy) || 1;
+        const ux = dx / len;
+        const uy = dy / len;
+        
+        // Trim vectors so arrowheads sit nicely at the borders of the cells
+        const startX = x1 + ux * (cellSize * 0.35);
+        const startY = y1 + uy * (cellSize * 0.35);
+        const endX = x2 - ux * (cellSize * 0.35);
+        const endY = y2 - uy * (cellSize * 0.35);
+
+        return (
+          <line
+            key={idx}
+            x1={startX}
+            y1={startY}
+            x2={endX}
+            y2={endY}
+            stroke="#fbbf24"
+            strokeWidth={1.5}
+            markerEnd="url(#dp-arrow)"
+          />
+        );
+      })}
     </svg>
   );
 }

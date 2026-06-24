@@ -106,9 +106,10 @@ export function RightPanel() {
         </motion.div>
       </div>
 
-      <div className="border-t border-zinc-800 px-4 py-3 grid grid-cols-3 gap-2">
+      <div className="border-t border-zinc-800 px-4 py-3 grid grid-cols-4 gap-1.5">
         <Counter label="step" value={`${idx + 1}/${total}`} />
         <Counter label="cmp" value={step?.comparisons ?? 0} />
+        <Counter label="swp" value={step?.swaps ?? 0} />
         <Counter label="wrt" value={step?.writes ?? 0} />
       </div>
     </aside>

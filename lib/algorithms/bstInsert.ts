@@ -76,9 +76,8 @@ function layoutTree(
   const build = (n: BstNode | null, parentId: string | null) => {
     if (!n) return;
     const d = depthMap.get(n.id)!;
-    const rowWidth = perRow.get(d)!;
-    const col = slot.get(n.id)!;
-    const x = (col + 0.5) / rowWidth;
+    const idx = xMap.get(n.id)!;
+    const x = i > 1 ? (idx + 0.5) / i : 0.5;
     // Vertical: cap at depth 5 so deep trees still fit. Always leave a
     // bottom margin so the deepest node isn't clipped.
     const usableDepth = Math.min(maxDepth, 5);

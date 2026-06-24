@@ -45,9 +45,9 @@ function layout(root: N | null): { nodes: { id: string; value: number; x: number
   const b = (n: N | null, p: string | null) => {
     if (!n) return;
     const d0 = dep.get(n.id)!;
-    const row = per.get(d0)!;
-    const col = slot.get(n.id)!;
-    nodes.push({ id: n.id, value: n.v, x: (col + 0.5) / row, y: maxD === 0 ? 0.5 : 0.08 + (d0 / maxD) * 0.78, parentId: p });
+    const idxVal = idx.get(n.id)!;
+    const x = i > 1 ? (idxVal + 0.5) / i : 0.5;
+    nodes.push({ id: n.id, value: n.v, x, y: maxD === 0 ? 0.5 : 0.08 + (d0 / maxD) * 0.78, parentId: p });
     if (p) edges.push({ id: `e-${p}-${n.id}`, fromId: p, toId: n.id });
     b(n.l, n.id);
     b(n.r, n.id);

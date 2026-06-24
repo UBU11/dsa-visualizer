@@ -3,15 +3,18 @@
 //
 // Layout (normalized 0..1 coordinates so LinkedListView scales to any canvas):
 //
-//   Straight segment: nodes 0..lt-1 laid out on row 1 (y = 0.30)
-//   Cycle tail:        nodes lt..n-1 laid out on row 2 (y = 0.65), in reverse
-//                      visual order so the cycle "wraps around" the loop node
-//   Cycle-back arc:    drawn by LinkedListView itself — last tail node's
-//                      nextId points back to the loop-to node.
-//
-// The arc geometry is given to the renderer via the y-coordinate of the tail
-// row (lower) vs the loop-to row (higher), so the cubic bezier naturally
-// curves under and back without any node overlapping another.
+//   Top row (y = 0.30): the chain prefix INCLUDING the loop-to node.
+//                       For loopTo=0, the top row holds the entire chain.
+//                       For loopTo=k>0, top row = nodes [0..k], with node k
+//                       being the cycle entry point.
+//   Bottom row (y = 0.68): only when there's a cycle. Holds the remaining
+//                       tail [k+1 .. size-1] left-to-right. The cycle-back
+//                       tip (last tail node) is then positioned directly
+//                       UNDER the loop-to node on the top row, so the
+//                       cycle-back arc is a short vertical-ish hop instead
+//                       of a long cross-canvas diagonal.
+//   Cycle-back arc:   drawn by LinkedListView — last tail node's nextId
+//                       points back to the loop-to node on the top row.
 //
 // All x/y are normalized 0..1.
 
@@ -44,8 +47,12 @@ export const floydCycle: AlgorithmDefinition = {
     { key: "loopTo", label: "Cycle back to (0=none)", kind: "number", min: 0, max: 5, step: 1, default: 2 },
   ],
   run(cfg) {
-    const size = Number(cfg.size) || 6;
-    const loopTo = Number(cfg.loopTo) || 0;
+    const size = Math.max(2, Number(cfg.size) || 6);
+    const requestedLoopTo = Math.max(0, Number(cfg.loopTo) || 0);
+    // Clamp loopTo to a valid in-range index (1..size-2). 0 means "no cycle".
+    const loopTo =
+      requestedLoopTo > 0 && requestedLoopTo < size - 1 ? requestedLoopTo : 0;
+
     // Build nodes — last node points back to loopTo (if loopTo > 0).
     const nodes: LN[] = Array.from({ length: size }, (_, i) => ({
       id: `n${i}`,
@@ -53,53 +60,53 @@ export const floydCycle: AlgorithmDefinition = {
       nextId:
         i + 1 < size
           ? `n${i + 1}`
-          : loopTo > 0 && loopTo < size
+          : loopTo > 0
             ? `n${loopTo}`
             : null,
     }));
 
     // Layout helper. Produces normalized {x, y} for each node.
-    // Row 1 (straight segment): y = 0.32
-    // Row 2 (cycle tail):       y = 0.68
-    const lt = loopTo > 0 && loopTo < size ? loopTo : size;
-    const tailCount = size - lt;
+    //   Top row (y = 0.30): nodes 0..lt  (prefix INCLUDING the loop-to node).
+    //   Bottom row (y = 0.68): nodes lt+1..size-1  (the cycle tail).
+    // The cycle-back tip (last tail, real index = size-1) is laid out at the
+    // FAR RIGHT of the bottom row, and the loop-to (real index = lt) is laid
+    // out at the FAR RIGHT of the top row. They share the same x, so the
+    // cycle-back arc is a short vertical hop.
+    const lt = loopTo > 0 ? loopTo : size;
+    const topCount = lt + (loopTo > 0 ? 1 : 0); // include loop-to on top row
+    const tailCount = loopTo > 0 ? size - lt - 1 : 0;
 
     const horizontalMargin = 0.05;
     const usableW = 1 - 2 * horizontalMargin;
 
     const layoutFor = (
-      straightCount: number,
+      topCountInner: number,
       tailCountInner: number,
     ): { id: string; value: number; x: number; y: number; nextId: string | null }[] => {
-      // Straight segment: indices 0..straightCount-1 on row 1.
-      const straightSlots = straightCount;
+      const topSlots = topCountInner;
       const tailSlots = Math.max(tailCountInner, 0);
-      const totalSlots = straightSlots + tailSlots;
 
-      // Straight nodes — x evenly spaced on top row
       const out: { id: string; value: number; x: number; y: number; nextId: string | null }[] = [];
-      if (straightSlots > 0) {
-        const w = usableW / straightSlots;
-        for (let i = 0; i < straightSlots; i++) {
+      // Top-row nodes (prefix including the loop-to), left-to-right.
+      if (topSlots > 0) {
+        const w = usableW / topSlots;
+        for (let i = 0; i < topSlots; i++) {
           const node = nodes[i];
           out.push({
             id: node.id,
             value: node.v,
             x: horizontalMargin + w * (i + 0.5),
-            y: 0.32,
+            y: 0.30,
             nextId: node.nextId,
           });
         }
       }
-      // Tail nodes — laid out on bottom row in original order so node `lt`
-      // (the first tail node) sits directly under the last straight node,
-      // and node `size-1` (the cycle-back tail tip) sits at the FAR RIGHT.
-      // The cycle-back arrow then naturally curves from the rightmost
-      // bottom-row node UP to the loop-to node on the top row.
+      // Bottom-row tail nodes, left-to-right. The last tail node sits
+      // directly under the loop-to node (both at the far-right column).
       if (tailSlots > 0) {
         const w = usableW / tailSlots;
         for (let j = 0; j < tailSlots; j++) {
-          const realIdx = lt + j;
+          const realIdx = lt + 1 + j;
           const node = nodes[realIdx];
           out.push({
             id: node.id,
@@ -110,12 +117,10 @@ export const floydCycle: AlgorithmDefinition = {
           });
         }
       }
-      // Sanity: when there's no cycle, just render a single row.
-      if (tailSlots === 0 && straightSlots === 0) return out;
       return out;
     };
 
-    const init = layoutFor(lt, tailCount);
+    const init = layoutFor(topCount, tailCount);
     const rec = createRecorder({
       index: 0,
       title: `Linked list${loopTo > 0 ? ` (cycle back to n${loopTo})` : " (no cycle)"}`,
@@ -123,8 +128,8 @@ export const floydCycle: AlgorithmDefinition = {
       listNodes: init,
       listHighlights: {},
       variables: [
-        { name: "slow", value: "head", kind: "pointer" },
-        { name: "fast", value: "head", kind: "pointer" },
+        { name: "slow", value: "n0", kind: "pointer" },
+        { name: "fast", value: "n0", kind: "pointer" },
       ],
       comparisons: 0,
       swaps: 0,
@@ -135,24 +140,39 @@ export const floydCycle: AlgorithmDefinition = {
       // No cycle — just walk to the end so the algorithm is still demonstrable.
       let cur = 0;
       let cmp = 0;
-      while (cur < size) {
+      while (cur < size && nodes[cur].nextId) {
         const lt2 = layoutFor(size, 0);
+        const nextId = nodes[cur].nextId!;
         pushStep(rec, {
-          title: `cur = n${cur + 1} (${nodes[cur].v}), next = ${nodes[cur].nextId ? `n${parseInt(nodes[cur].nextId!.slice(1)) + 1}` : "null"}`,
+          title: `cur = n${cur + 1} (${nodes[cur].v})`,
           currentLine: 2,
           listNodes: lt2,
           listHighlights: { [nodes[cur].id]: "pointer" },
           variables: [
-            { name: "cur", value: `n${cur + 1}`, kind: "pointer", highlight: true },
+            { name: "cur", value: `n${cur}`, kind: "pointer", highlight: true },
+            { name: "next", value: nextId, kind: "pointer" },
             { name: "cmp", value: String(cmp), kind: "number" },
           ],
           comparisons: cmp++,
           swaps: 0,
           writes: 0,
         });
-        if (!nodes[cur].nextId) break;
-        cur = parseInt(nodes[cur].nextId!.slice(1), 10);
+        cur = parseInt(nextId.slice(1), 10);
       }
+      // Final tail step.
+      pushStep(rec, {
+        title: `cur = n${cur + 1} (${nodes[cur].v}), next = null`,
+        currentLine: 2,
+        listNodes: layoutFor(size, 0),
+        listHighlights: { [nodes[cur].id]: "pointer" },
+        variables: [
+          { name: "cur", value: `n${cur}`, kind: "pointer", highlight: true },
+          { name: "next", value: "null", kind: "pointer" },
+        ],
+        comparisons: cmp,
+        swaps: 0,
+        writes: 0,
+      });
       pushStep(rec, {
         title: "No cycle (reached tail)",
         currentLine: 6,
@@ -166,57 +186,91 @@ export const floydCycle: AlgorithmDefinition = {
       return rec.steps;
     }
 
-    // With cycle: hare & tortoise
+    // With cycle: hare & tortoise.
+    // The pseudocode is: advance, then check. Each iteration renders a "before
+    // advance" snapshot at the current pointer positions, then advances and
+    // renders an "after advance" snapshot, then either loops or declares cycle.
     let slow = 0;
     let fast = 0;
     let cmp = 0;
     const stepLimit = 60;
-    let steps = 0;
-    while (steps++ < stepLimit) {
-      const lt2 = layoutFor(lt, tailCount);
-      const snapHi: Record<string, "compare" | "pointer" | "mutate"> = {
-        [nodes[slow].id]: "pointer",
-        [nodes[fast].id]: "compare",
-      };
+    let iterations = 0;
+
+    while (iterations++ < stepLimit) {
+      // Render the current pointer positions (line 2: "while fast and fast.next").
+      // When both pointers land on the same node, prefer the "pointer" color
+      // (indigo) so the slow-pointer identity stays clear.
+      const snapHi: Record<string, "compare" | "pointer" | "mutate"> = {};
+      snapHi[nodes[fast].id] = "compare";
+      snapHi[nodes[slow].id] = "pointer";
       pushStep(rec, {
         title: `slow = n${slow + 1}, fast = n${fast + 1}`,
         currentLine: 2,
-        listNodes: lt2,
+        listNodes: layoutFor(lt, tailCount),
         listHighlights: snapHi,
         variables: [
-          { name: "slow", value: `n${slow + 1}`, kind: "pointer", highlight: true },
-          { name: "fast", value: `n${fast + 1}`, kind: "pointer", highlight: true },
+          { name: "slow", value: `n${slow}`, kind: "pointer", highlight: true },
+          { name: "fast", value: `n${fast}`, kind: "pointer", highlight: true },
           { name: "cmp", value: String(cmp), kind: "number" },
         ],
         comparisons: cmp,
         swaps: 0,
         writes: 0,
       });
+
+      // Advance (lines 3 & 4).
+      const newSlow = parseInt(nodes[slow].nextId?.slice(1) ?? "-1", 10);
+      const fastNext = parseInt(nodes[fast].nextId?.slice(1) ?? "-1", 10);
+      if (newSlow < 0 || fastNext < 0) break;
+      const newFast =
+        fastNext < size
+          ? parseInt(nodes[fastNext].nextId?.slice(1) ?? "-1", 10)
+          : -1;
+      if (newFast < 0) break;
+
+      // Render the "just advanced" snapshot (line 3+4 in progress).
+      pushStep(rec, {
+        title: `slow → n${newSlow + 1}, fast → n${newFast + 1}`,
+        currentLine: 3,
+        listNodes: layoutFor(lt, tailCount),
+        listHighlights: {
+          [nodes[newSlow].id]: "pointer",
+          [nodes[newFast].id]: "compare",
+        },
+        variables: [
+          { name: "slow", value: `n${newSlow}`, kind: "pointer", highlight: true },
+          { name: "fast", value: `n${newFast}`, kind: "pointer", highlight: true },
+          { name: "cmp", value: String(cmp), kind: "number" },
+        ],
+        comparisons: cmp,
+        swaps: 0,
+        writes: 0,
+      });
+
+      slow = newSlow;
+      fast = newFast;
+      cmp++;
+
+      // Check (line 5).
       if (slow === fast) {
         pushStep(rec, {
-          title: `Cycle detected at n${slow + 1}`,
+          title: `slow == fast at n${slow + 1} → cycle detected`,
           currentLine: 5,
           listNodes: layoutFor(lt, tailCount),
           listHighlights: { [nodes[slow].id]: "mutate" },
-          variables: [{ name: "result", value: "cycle", kind: "pointer", highlight: true }],
+          variables: [
+            { name: "slow", value: `n${slow}`, kind: "pointer" },
+            { name: "fast", value: `n${fast}`, kind: "pointer" },
+            { name: "result", value: "cycle", kind: "pointer", highlight: true },
+          ],
           comparisons: cmp,
           swaps: 0,
           writes: 0,
         });
         return rec.steps;
       }
-      cmp++;
-      const newSlow = parseInt(nodes[slow].nextId?.slice(1) ?? "-1", 10);
-      const fastNext = parseInt(nodes[fast].nextId?.slice(1) ?? "-1", 10);
-      if (fastNext < 0 || newSlow < 0) break;
-      const newFast =
-        fastNext < size
-          ? parseInt(nodes[fastNext].nextId?.slice(1) ?? "-1", 10)
-          : -1;
-      if (newFast < 0) break;
-      slow = newSlow;
-      fast = newFast;
     }
+
     pushStep(rec, {
       title: "No cycle (fast reached end)",
       currentLine: 6,

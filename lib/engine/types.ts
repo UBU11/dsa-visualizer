@@ -199,6 +199,7 @@ export interface HistoryStep {
 export type StructureKind =
   | "array"
   | "tree"
+  | "trie"
   | "graph"
   | "list"
   | "stack"

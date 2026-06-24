@@ -92,7 +92,7 @@ export const linkedListReverse: AlgorithmDefinition = {
       listHighlights: {},
       variables: [
         { name: "prev", value: "null", kind: "pointer" },
-        { name: "cur", value: nodes[0]?.value ?? "null", kind: "pointer" },
+        { name: "cur", value: nodes[0]?.id ?? "null", kind: "pointer" },
       ],
       comparisons: 0,
       swaps: 0,
@@ -134,8 +134,8 @@ export const linkedListReverse: AlgorithmDefinition = {
         `cur = node ${c.value}`,
         3,
         [
-          { name: "prev", value: prev ? prev.value : "null", kind: "pointer" },
-          { name: "cur", value: c.value, kind: "pointer", highlight: true },
+          { name: "prev", value: prev ? prev.id : "null", kind: "pointer" },
+          { name: "cur", value: c.id, kind: "pointer", highlight: true },
         ],
       );
       const next: LLNode | null =
@@ -149,8 +149,8 @@ export const linkedListReverse: AlgorithmDefinition = {
         `next = cur.next${next ? ` (= ${next.value})` : " (null)"}`,
         4,
         [
-          { name: "next", value: next ? next.value : "null", kind: "pointer" },
-          { name: "cur", value: c.value, kind: "pointer" },
+          { name: "next", value: next ? next.id : "null", kind: "pointer" },
+          { name: "cur", value: c.id, kind: "pointer" },
         ],
       );
       c.nextId = prev ? prev.id : null;
@@ -160,8 +160,8 @@ export const linkedListReverse: AlgorithmDefinition = {
         `cur.next = prev${prev ? ` (= ${prev.value})` : " (null)"}`,
         5,
         [
-          { name: "cur", value: c.value, kind: "pointer", highlight: true },
-          { name: "cur.next", value: prev ? prev.value : "null", kind: "pointer" },
+          { name: "cur", value: c.id, kind: "pointer", highlight: true },
+          { name: "cur.next", value: prev ? prev.id : "null", kind: "pointer" },
         ],
         "rewire pointer",
       );
@@ -175,8 +175,8 @@ export const linkedListReverse: AlgorithmDefinition = {
         `advance: prev = ${prev?.value}, cur = ${cur ? cur.value : "null"}`,
         7,
         [
-          { name: "prev", value: prev ? prev.value : "null", kind: "pointer" },
-          { name: "cur", value: cur ? cur.value : "null", kind: "pointer" },
+          { name: "prev", value: prev ? prev.id : "null", kind: "pointer" },
+          { name: "cur", value: cur ? cur.id : "null", kind: "pointer" },
         ],
       );
     }
@@ -196,7 +196,7 @@ export const linkedListReverse: AlgorithmDefinition = {
       listNodes: final.snaps,
       listHighlights: Object.fromEntries(final.snaps.map((s) => [s.id, "sorted" as const])),
       variables: [
-        { name: "head", value: map.get(nodes[0].id)?.value ?? "null", kind: "pointer", highlight: true },
+        { name: "head", value: map.get(nodes[0].id)?.id ?? "null", kind: "pointer", highlight: true },
         { name: "writes", value: writes, kind: "number" },
       ],
       comparisons: 0,

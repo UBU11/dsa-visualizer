@@ -82,8 +82,9 @@ export function LinkedListView({ step }: Props) {
       <svg className="absolute inset-0 h-full w-full pointer-events-none">
         {nodes.map((n) => {
           if (!n.nextId) return null;
-          const a = positions.get(n.id)!;
-          const b = positions.get(n.nextId)!;
+          const a = positions.get(n.id);
+          const b = positions.get(n.nextId);
+          if (!a || !b) return null;
           const x1 = a.x + boxW;
           const y1 = a.y + boxH / 2;
           const x2 = b.x;
@@ -133,6 +134,12 @@ export function LinkedListView({ step }: Props) {
         const p = positions.get(n.id)!;
         const token = highlights[n.id];
         const palette = token ? tokenColors[token] : null;
+
+        // Find pointer variables pointing to this node
+        const nodePointers = step.variables.filter(
+          (v) => v.kind === "pointer" && v.value === n.id
+        );
+
         return (
           <motion.div
             key={n.id}
@@ -145,6 +152,20 @@ export function LinkedListView({ step }: Props) {
             style={{ width: boxW, height: boxH }}
           >
             {n.value}
+
+            {/* Pointer labels floating above the node */}
+            {nodePointers.length > 0 && (
+              <div className="absolute left-1/2 -translate-x-1/2 -top-6 flex gap-1 z-20">
+                {nodePointers.map((ptr) => (
+                  <span
+                    key={ptr.name}
+                    className="text-[9px] font-semibold bg-indigo-600 border border-indigo-400 text-indigo-50 px-1 py-0.5 rounded-sm whitespace-nowrap uppercase tracking-tight"
+                  >
+                    {ptr.name}
+                  </span>
+                ))}
+              </div>
+            )}
           </motion.div>
         );
       })}

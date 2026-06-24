@@ -62,8 +62,9 @@ export function GraphView({ step }: Props) {
           </marker>
         </defs>
         {edges.map((e) => {
-          const a = pos.get(e.fromId)!;
-          const b = pos.get(e.toId)!;
+          const a = pos.get(e.fromId);
+          const b = pos.get(e.toId);
+          if (!a || !b) return null;
           // Trim the line so the arrow lands on the node edge, not center.
           const dx = b.x - a.x;
           const dy = b.y - a.y;

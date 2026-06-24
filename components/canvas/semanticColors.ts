@@ -15,4 +15,4 @@ export const tokenColors: Record<
   visited: { bg: "bg-slate-600", border: "border-slate-400", text: "text-slate-200" },
 };
 
-export const defaultCellClass = "bg-zinc-800 border-zinc-700 text-zinc-100";
+export const defaultCellClass = "bg-zinc-800 border-slate-200 text-zinc-100";
