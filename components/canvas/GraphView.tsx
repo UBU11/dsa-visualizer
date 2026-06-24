@@ -75,19 +75,27 @@ export function GraphView({ step }: Props) {
           const y1 = a.y + uy * nodeR;
           const x2 = b.x - ux * nodeR;
           const y2 = b.y - uy * nodeR;
+          const edgeToken: SemanticToken | undefined = highlights[e.id];
           const targetToken: SemanticToken | undefined = highlights[e.toId];
           const sourceToken: SemanticToken | undefined = highlights[e.fromId];
-          const active =
-            sourceToken === "compare" ||
-            targetToken === "compare" ||
-            targetToken === "mutate" ||
-            targetToken === "pointer";
+          
+          const token = edgeToken || (
+            (sourceToken === "compare" || targetToken === "compare" || targetToken === "mutate" || targetToken === "pointer")
+              ? (targetToken === "mutate" ? "mutate" : targetToken === "pointer" ? "pointer" : "compare")
+              : undefined
+          );
+          
+          const active = !!token;
           const stroke = active
-            ? targetToken === "mutate"
+            ? token === "mutate"
               ? "#fb7185"
-              : targetToken === "pointer"
+              : token === "pointer"
                 ? "#818cf8"
-                : "#fbbf24"
+                : token === "sorted"
+                  ? "#10b981"
+                  : token === "visited"
+                    ? "#64748b"
+                    : "#fbbf24"
             : "#3f3f46";
 
           // Calculate midpoint for the edge label

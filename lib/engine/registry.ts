@@ -36,6 +36,8 @@ import { lcs } from "@/lib/algorithms/lcs";
 import { nQueens } from "@/lib/algorithms/nQueens";
 import { kmp } from "@/lib/algorithms/kmp";
 import { aesSimulation } from "@/lib/algorithms/aesSimulation";
+import { diffieHellman } from "@/lib/algorithms/diffieHellman";
+import { rsaSimulation } from "@/lib/algorithms/rsaSimulation";
 
 export const algorithms: AlgorithmDefinition[] = [
   bubbleSort,
@@ -69,6 +71,8 @@ export const algorithms: AlgorithmDefinition[] = [
   nQueens,
   kmp,
   aesSimulation,
+  diffieHellman,
+  rsaSimulation,
 ];
 
 const byId = new Map(algorithms.map((a) => [a.id, a]));
