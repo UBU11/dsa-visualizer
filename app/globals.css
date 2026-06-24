@@ -1,26 +1,48 @@
+/* app/globals.css — design tokens + base layer */
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  background-color: #09090b;
+  color: #f4f4f5;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Slimmer range slider — strip default UA styling. */
+input[type="range"] {
+  appearance: none;
+  height: 4px;
+  background-color: #27272a;
+  border-radius: 2px;
+}
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background-color: #f4f4f5;
+  border: 2px solid #09090b;
+  cursor: pointer;
+  box-shadow: 0 0 0 1px #52525b;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background-color: #f4f4f5;
+  border: 2px solid #09090b;
+  cursor: pointer;
+  box-shadow: 0 0 0 1px #52525b;
+}
+
+/* No focus halo except for keyboard nav. */
+:focus-visible {
+  outline: 1px solid #52525b;
+  outline-offset: 1px;
 }
