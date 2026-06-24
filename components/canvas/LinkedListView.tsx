@@ -55,6 +55,28 @@ export function LinkedListView({ step }: Props) {
     }),
   );
 
+  // Detect edges that close a cycle (i.e. n.nextId leads back to n or any
+  // earlier node in the chain). Cycle-back edges are drawn dashed + rose
+  // so the visual loop is unambiguous.
+  const cycleEdges = new Set<string>();
+  const nodeById = new Map(nodes.map((n) => [n.id, n]));
+  for (const n of nodes) {
+    if (!n.nextId) continue;
+    // Walk forward from n.nextId. If we ever return to n.id, this is a cycle edge.
+    const seen = new Set<string>();
+    let cur: string | null = n.nextId;
+    let depth = 0;
+    while (cur && !seen.has(cur) && depth < 64) {
+      seen.add(cur);
+      if (cur === n.id) {
+        cycleEdges.add(`${n.id}->${n.nextId}`);
+        break;
+      }
+      cur = nodeById.get(cur)?.nextId ?? null;
+      depth++;
+    }
+  }
+
   return (
     <div ref={containerRef} className="relative h-full w-full overflow-hidden">
       <svg className="absolute inset-0 h-full w-full pointer-events-none">
@@ -67,9 +89,11 @@ export function LinkedListView({ step }: Props) {
           const x2 = b.x;
           const y2 = b.y + boxH / 2;
           const cx = (x1 + x2) / 2;
-          const token = highlights[n.nextId];
-          const stroke =
-            token === "mutate"
+          const isCycle = cycleEdges.has(`${n.id}->${n.nextId}`);
+          const token = isCycle ? "mutate" : highlights[n.nextId];
+          const stroke = isCycle
+            ? "#fb7185"
+            : token === "mutate"
               ? "#fb7185"
               : token === "sorted"
                 ? "#34d399"
@@ -81,7 +105,8 @@ export function LinkedListView({ step }: Props) {
               key={`${n.id}->${n.nextId}`}
               d={`M ${x1} ${y1} C ${cx} ${y1}, ${cx} ${y2}, ${x2} ${y2}`}
               stroke={stroke}
-              strokeWidth={1.6}
+              strokeWidth={isCycle ? 2.4 : 1.6}
+              strokeDasharray={isCycle ? "6 4" : undefined}
               fill="none"
               markerEnd="url(#ll-arrow)"
               initial={{ pathLength: 0 }}

@@ -91,17 +91,15 @@ export const floydCycle: AlgorithmDefinition = {
           });
         }
       }
-      // Tail nodes — laid out on bottom row, in reverse so the cycle visually
-      // returns to the loop-to node from the left side. We want the LAST
-      // tail node (size-1) to be near the LEFT (so its "next" arrow goes
-      // back up-right to the loop-to node), and node lt to be on the RIGHT
-      // (adjacent to the last straight node so the i → i+1 arrow stays
-      // horizontal).
+      // Tail nodes — laid out on bottom row in original order so node `lt`
+      // (the first tail node) sits directly under the last straight node,
+      // and node `size-1` (the cycle-back tail tip) sits at the FAR RIGHT.
+      // The cycle-back arrow then naturally curves from the rightmost
+      // bottom-row node UP to the loop-to node on the top row.
       if (tailSlots > 0) {
         const w = usableW / tailSlots;
         for (let j = 0; j < tailSlots; j++) {
-          // visualOrder: 0 (leftmost) = last node (size-1), rightmost = node lt
-          const realIdx = size - 1 - j;
+          const realIdx = lt + j;
           const node = nodes[realIdx];
           out.push({
             id: node.id,
