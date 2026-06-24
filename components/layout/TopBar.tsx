@@ -18,9 +18,11 @@ export function TopBar() {
   return (
     <header className="h-12 shrink-0 flex items-center justify-between gap-3 border-b border-zinc-800 bg-zinc-900 px-3">
       <div className="flex items-center gap-3 min-w-0">
-        <div className="grid place-items-center h-7 w-7 rounded-sm bg-zinc-100 text-zinc-900 text-xs font-bold tracking-tight">
-          DS
-        </div>
+        <img
+          src="/favicon.svg"
+          alt="DSA Visualizer"
+          className="h-7 w-7 rounded-sm select-none"
+        />
         <span className="text-sm font-semibold tracking-tight text-zinc-100">
           DSA Visualizer
         </span>
