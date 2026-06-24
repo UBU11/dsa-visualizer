@@ -240,7 +240,8 @@ export interface AlgorithmDefinition {
     | "Stacks & Queues"
     | "Backtracking"
     | "Strings"
-    | "Cryptography";
+    | "Cryptography"
+    | "Machine Learning";
   structure: StructureKind;
   summary: string;
   pseudocode: PseudoLine[];

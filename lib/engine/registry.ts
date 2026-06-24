@@ -38,6 +38,13 @@ import { kmp } from "@/lib/algorithms/kmp";
 import { aesSimulation } from "@/lib/algorithms/aesSimulation";
 import { diffieHellman } from "@/lib/algorithms/diffieHellman";
 import { rsaSimulation } from "@/lib/algorithms/rsaSimulation";
+import { selfAttention } from "@/lib/algorithms/selfAttention";
+import { linearRegression } from "@/lib/algorithms/linearRegression";
+import { logisticRegression } from "@/lib/algorithms/logisticRegression";
+import { knn } from "@/lib/algorithms/knn";
+import { bpeTokenization } from "@/lib/algorithms/bpeTokenization";
+import { rnnSimulation } from "@/lib/algorithms/rnnSimulation";
+import { dnnSimulation } from "@/lib/algorithms/dnnSimulation";
 
 export const algorithms: AlgorithmDefinition[] = [
   bubbleSort,
@@ -73,6 +80,13 @@ export const algorithms: AlgorithmDefinition[] = [
   aesSimulation,
   diffieHellman,
   rsaSimulation,
+  selfAttention,
+  linearRegression,
+  logisticRegression,
+  knn,
+  bpeTokenization,
+  rnnSimulation,
+  dnnSimulation,
 ];
 
 const byId = new Map(algorithms.map((a) => [a.id, a]));
